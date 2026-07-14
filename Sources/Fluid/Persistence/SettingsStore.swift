@@ -4082,6 +4082,10 @@ final class SettingsStore: ObservableObject {
         case whisperLargeTurbo = "whisper-large-turbo"
         case whisperLarge = "whisper-large"
 
+        // MARK: - Remote (Self-Hosted / OpenAI-Compatible)
+
+        case customEndpoint = "custom-endpoint"
+
         var id: String {
             rawValue
         }
@@ -4106,6 +4110,7 @@ final class SettingsStore: ObservableObject {
             case .whisperMedium: return "Whisper Medium"
             case .whisperLargeTurbo: return "Whisper Large Turbo"
             case .whisperLarge: return "Whisper Large"
+            case .customEndpoint: return "Custom Endpoint (OpenAI-Compatible)"
             }
         }
 
@@ -4122,6 +4127,8 @@ final class SettingsStore: ObservableObject {
             case .appleSpeechAnalyzer: return "EN, ES, FR, DE, IT, JA, KO, PT, ZH"
             case .whisperTiny, .whisperBase, .whisperSmall, .whisperMedium, .whisperLargeTurbo, .whisperLarge:
                 return "99 Languages"
+            case .customEndpoint:
+                return "Depends on Server"
             }
         }
 
@@ -4143,6 +4150,7 @@ final class SettingsStore: ObservableObject {
             case .whisperMedium: return "~793.0 MiB"
             case .whisperLargeTurbo: return "~845.3 MiB"
             case .whisperLarge: return "~1.55 GiB"
+            case .customEndpoint: return "No Download"
             }
         }
 
@@ -4161,7 +4169,7 @@ final class SettingsStore: ObservableObject {
             case .whisperMedium: return 831_538_144
             case .whisperLargeTurbo: return 886_381_824
             case .whisperLarge: return 1_668_741_440
-            case .appleSpeech, .appleSpeechAnalyzer: return 0
+            case .appleSpeech, .appleSpeechAnalyzer, .customEndpoint: return 0
             }
         }
 
@@ -4174,7 +4182,7 @@ final class SettingsStore: ObservableObject {
 
         var isWhisperModel: Bool {
             switch self {
-            case .parakeetTDT, .parakeetTDTv2, .parakeetRealtime, .qwen3Asr, .cohereTranscribeSixBit, .nemotronOffline, .nemotronStreaming, .nemotronStreaming320, .appleSpeech, .appleSpeechAnalyzer: return false
+            case .parakeetTDT, .parakeetTDTv2, .parakeetRealtime, .qwen3Asr, .cohereTranscribeSixBit, .nemotronOffline, .nemotronStreaming, .nemotronStreaming320, .appleSpeech, .appleSpeechAnalyzer, .customEndpoint: return false
             default: return true
             }
         }
@@ -4305,6 +4313,7 @@ final class SettingsStore: ObservableObject {
             case .whisperMedium: return "Medium Quality"
             case .whisperLargeTurbo: return "Higher Quality but Faster"
             case .whisperLarge: return "Maximum Accuracy"
+            case .customEndpoint: return "Custom Server"
             }
         }
 
@@ -4346,6 +4355,8 @@ final class SettingsStore: ObservableObject {
                 return "Near-maximum accuracy with optimized speed."
             case .whisperLarge:
                 return "Best possible accuracy. Large download and memory usage."
+            case .customEndpoint:
+                return "Sends audio to your own OpenAI-compatible transcription server (e.g. Chronicle). Configure the base URL, API key, and optional model name."
             }
         }
 
@@ -4362,6 +4373,8 @@ final class SettingsStore: ObservableObject {
                 return 8.0
             case .appleSpeech, .appleSpeechAnalyzer:
                 return 2.0 // Built-in, minimal overhead
+            case .customEndpoint:
+                return 2.0 // Remote inference, minimal local overhead
             case .whisperTiny:
                 return 2.0
             case .whisperBase:
@@ -4411,6 +4424,7 @@ final class SettingsStore: ObservableObject {
             case .whisperMedium: return 2
             case .whisperLargeTurbo: return 3
             case .whisperLarge: return 1
+            case .customEndpoint: return 4
             }
         }
 
@@ -4432,6 +4446,7 @@ final class SettingsStore: ObservableObject {
             case .whisperMedium: return 4
             case .whisperLargeTurbo: return 5
             case .whisperLarge: return 5
+            case .customEndpoint: return 4
             }
         }
 
@@ -4453,6 +4468,7 @@ final class SettingsStore: ObservableObject {
             case .whisperMedium: return 0.40
             case .whisperLargeTurbo: return 0.65
             case .whisperLarge: return 0.20
+            case .customEndpoint: return 0.85
             }
         }
 
@@ -4474,6 +4490,7 @@ final class SettingsStore: ObservableObject {
             case .whisperMedium: return 0.80
             case .whisperLargeTurbo: return 0.95
             case .whisperLarge: return 1.00
+            case .customEndpoint: return 0.90
             }
         }
 
@@ -4487,6 +4504,7 @@ final class SettingsStore: ObservableObject {
             case .cohereTranscribeSixBit: return "New"
             case .nemotronOffline, .nemotronStreaming, .nemotronStreaming320: return "New + Beta"
             case .appleSpeechAnalyzer: return "New"
+            case .customEndpoint: return "Server"
             default: return nil
             }
         }
@@ -4507,6 +4525,8 @@ final class SettingsStore: ObservableObject {
             switch self {
             case .qwen3Asr, .whisperMedium, .whisperLargeTurbo, .whisperLarge:
                 return false // Too slow for real-time chunk processing
+            case .customEndpoint:
+                return false // One HTTP request per preview chunk would flood the server
             default:
                 return true // All other models support streaming
             }
@@ -4562,6 +4582,7 @@ final class SettingsStore: ObservableObject {
             case openai = "OpenAI"
             case qwen = "Qwen"
             case cohere = "Cohere"
+            case custom = "Custom"
         }
 
         /// Which provider this model belongs to
@@ -4577,6 +4598,8 @@ final class SettingsStore: ObservableObject {
                 return .cohere
             case .whisperTiny, .whisperBase, .whisperSmall, .whisperMedium, .whisperLargeTurbo, .whisperLarge:
                 return .openai
+            case .customEndpoint:
+                return .custom
             }
         }
 
@@ -4588,7 +4611,7 @@ final class SettingsStore: ObservableObject {
         /// Whether this model is built-in or already downloaded on disk
         var isInstalled: Bool {
             switch self {
-            case .appleSpeech, .appleSpeechAnalyzer:
+            case .appleSpeech, .appleSpeechAnalyzer, .customEndpoint:
                 return true
             case .parakeetTDT:
                 #if canImport(FluidAudio)
@@ -4706,6 +4729,8 @@ final class SettingsStore: ObservableObject {
                 return "Apple"
             case .whisperTiny, .whisperBase, .whisperSmall, .whisperMedium, .whisperLargeTurbo, .whisperLarge:
                 return "OpenAI"
+            case .customEndpoint:
+                return "Custom"
             }
         }
 
@@ -4730,6 +4755,8 @@ final class SettingsStore: ObservableObject {
                 return "#A2AAAD" // Apple Gray
             case .whisperTiny, .whisperBase, .whisperSmall, .whisperMedium, .whisperLargeTurbo, .whisperLarge:
                 return "#10A37F" // OpenAI Teal
+            case .customEndpoint:
+                return "#7C3AED" // Purple
             }
         }
     }
@@ -4929,6 +4956,8 @@ private extension SettingsStore {
         static let selectedSpeechModel = "SelectedSpeechModel"
         static let selectedCohereLanguage = "SelectedCohereLanguage"
         static let selectedNemotronLanguage = "SelectedNemotronLanguage"
+        static let customEndpointBaseURL = "CustomEndpointBaseURL"
+        static let customEndpointModelName = "CustomEndpointModelName"
         static let selectedAppleSpeechLocaleIdentifier = "SelectedAppleSpeechLocaleIdentifier"
         static let externalCoreMLArtifactsDirectories = "ExternalCoreMLArtifactsDirectories"
 
@@ -5212,6 +5241,50 @@ extension SettingsStore {
         set {
             objectWillChange.send()
             self.defaults.set(newValue.rawValue, forKey: Keys.selectedNemotronLanguage)
+        }
+    }
+
+    // MARK: - Custom Endpoint (OpenAI-Compatible Remote STT)
+
+    /// Keychain provider ID for the custom endpoint API key.
+    static let customEndpointKeychainID = "custom-stt-endpoint"
+
+    /// Base URL of the OpenAI-compatible transcription server used by the
+    /// Custom Endpoint speech model, ending at the API base
+    /// (e.g. "https://192.168.0.110/api/v1"). Audio is posted to
+    /// "{base}/audio/transcriptions".
+    var customEndpointBaseURL: String {
+        get { self.defaults.string(forKey: Keys.customEndpointBaseURL) ?? "" }
+        set {
+            objectWillChange.send()
+            self.defaults.set(newValue, forKey: Keys.customEndpointBaseURL)
+        }
+    }
+
+    /// Optional model name sent as the OpenAI `model` form field. Empty means
+    /// the server picks its default model.
+    var customEndpointModelName: String {
+        get { self.defaults.string(forKey: Keys.customEndpointModelName) ?? "" }
+        set {
+            objectWillChange.send()
+            self.defaults.set(newValue, forKey: Keys.customEndpointModelName)
+        }
+    }
+
+    /// Bearer token for the custom transcription endpoint (stored in Keychain).
+    var customEndpointAPIKey: String {
+        get { (try? self.keychain.fetchKey(for: Self.customEndpointKeychainID)) ?? "" }
+        set {
+            objectWillChange.send()
+            do {
+                if newValue.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    try self.keychain.deleteKey(for: Self.customEndpointKeychainID)
+                } else {
+                    try self.keychain.storeKey(newValue, for: Self.customEndpointKeychainID)
+                }
+            } catch {
+                DebugLogger.shared.error("Failed to persist custom endpoint API key: \(error)", source: "SettingsStore")
+            }
         }
     }
 

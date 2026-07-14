@@ -437,6 +437,11 @@ extension VoiceEngineSettingsView {
                 }
             } else if model.isInstalled {
                 HStack(spacing: 8) {
+                    if model == .customEndpoint {
+                        self.customEndpointConfigButton
+                            .disabled(self.viewModel.areSpeechModelActionsBlocked)
+                    }
+
                     if isActive {
                         self.speechModelLanguagePicker(for: model)
                             .disabled(self.viewModel.areSpeechModelActionsBlocked)
@@ -459,7 +464,7 @@ extension VoiceEngineSettingsView {
                         .disabled(self.viewModel.areSpeechModelActionsBlocked)
                     }
 
-                    if !model.usesAppleLogo {
+                    if !model.usesAppleLogo, model != .customEndpoint {
                         if isSelected {
                             Button {
                                 self.viewModel.deleteSpeechModel(model)
@@ -604,6 +609,74 @@ extension VoiceEngineSettingsView {
         default:
             return model.displayName
         }
+    }
+
+    private var customEndpointConfigButton: some View {
+        Button {
+            self.isShowingCustomEndpointConfig.toggle()
+        } label: {
+            HStack(spacing: 5) {
+                Image(systemName: "gearshape")
+                    .font(self.theme.typography.bodySmall)
+                    .foregroundStyle(self.theme.palette.accent)
+                Text(self.settings.customEndpointBaseURL.isEmpty ? "Configure" : "Server")
+                    .lineLimit(1)
+                    .fontWeight(.semibold)
+                Image(systemName: "chevron.down")
+                    .font(.system(size: 9, weight: .semibold))
+                    .foregroundStyle(self.voiceEngineTertiaryText)
+            }
+            .font(self.theme.typography.bodySmallStrong)
+            .frame(minHeight: 24)
+            .padding(.horizontal, 9)
+            .background(
+                Capsule()
+                    .fill(self.theme.palette.accent.opacity(0.10))
+                    .overlay(
+                        Capsule()
+                            .stroke(self.theme.palette.accent.opacity(0.28), lineWidth: 1)
+                    )
+            )
+        }
+        .buttonStyle(.plain)
+        .popover(isPresented: self.$isShowingCustomEndpointConfig, arrowEdge: .bottom) {
+            self.customEndpointConfigPopover
+        }
+    }
+
+    private var customEndpointConfigPopover: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Custom Endpoint")
+                .font(self.theme.typography.bodyStrong)
+
+            Text("OpenAI-compatible transcription server. Enter the API base URL — audio is posted to {base}/audio/transcriptions.")
+                .font(self.theme.typography.bodySmall)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Base URL")
+                    .font(self.theme.typography.bodySmallStrong)
+                TextField("https://myserver/api/v1", text: self.$settings.customEndpointBaseURL)
+                    .textFieldStyle(.roundedBorder)
+            }
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text("API Key")
+                    .font(self.theme.typography.bodySmallStrong)
+                SecureField("Bearer token (optional)", text: self.$settings.customEndpointAPIKey)
+                    .textFieldStyle(.roundedBorder)
+            }
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Model (optional)")
+                    .font(self.theme.typography.bodySmallStrong)
+                TextField("server default", text: self.$settings.customEndpointModelName)
+                    .textFieldStyle(.roundedBorder)
+            }
+        }
+        .padding(14)
+        .frame(width: 340)
     }
 
     private var nemotronLanguagePickerButton: some View {

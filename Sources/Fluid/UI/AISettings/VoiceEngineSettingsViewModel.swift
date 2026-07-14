@@ -95,6 +95,8 @@ final class VoiceEngineSettingsViewModel: ObservableObject {
             models = models.filter { $0.provider == .cohere }
         case .openai:
             models = models.filter { $0.provider == .openai }
+        case .custom:
+            models = models.filter { $0.provider == .custom }
         }
 
         if self.englishOnlyFilter {
@@ -226,6 +228,8 @@ final class VoiceEngineSettingsViewModel: ObservableObject {
             return "Nemotron 3.5 Multilingual is slower but more accurate. Supports around 40 languages with auto or manual language selection. Best on Apple Silicon with 8GB+ RAM."
         case .nemotronStreaming, .nemotronStreaming320:
             return "Nemotron Speech 3.5 Streaming Capable uses NVIDIA's streaming CoreML pipeline. Supports around 40 languages with auto or manual language selection."
+        case .customEndpoint:
+            return "Custom Endpoint sends recordings to your own OpenAI-compatible transcription server. Nothing runs locally; language support and accuracy depend on the server's model."
         default:
             return "Whisper models support 99 languages and work on any Mac."
         }

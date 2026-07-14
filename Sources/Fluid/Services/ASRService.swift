@@ -156,6 +156,7 @@ final class ASRService: ObservableObject {
     private var nemotronProviders: [NemotronProvider.Mode: NemotronProvider] = [:]
     private var whisperProvider: WhisperProvider?
     private var appleSpeechProvider: AppleSpeechProvider?
+    private var customEndpointProvider: CustomEndpointProvider?
     /// Stored as Any? because @available cannot be applied to stored properties
     private var _appleSpeechAnalyzerProvider: Any?
 
@@ -211,6 +212,7 @@ final class ASRService: ObservableObject {
         self.nemotronProviders.removeAll()
         self.whisperProvider = nil
         self.appleSpeechProvider = nil
+        self.customEndpointProvider = nil
         self._appleSpeechAnalyzerProvider = nil
         self.isAsrReady = false
         self.isLoadingModel = false
@@ -242,6 +244,8 @@ final class ASRService: ObservableObject {
             return self.getNemotronProvider(mode: model.nemotronProviderMode)
         case .qwen3Asr:
             return self.getFluidAudioProvider()
+        case .customEndpoint:
+            return self.getCustomEndpointProvider()
         default:
             return self.getWhisperProvider()
         }
@@ -297,6 +301,16 @@ final class ASRService: ObservableObject {
         let provider = WhisperProvider()
         self.whisperProvider = provider
         DebugLogger.shared.info("ASRService: Created Whisper provider", source: "ASRService")
+        return provider
+    }
+
+    private func getCustomEndpointProvider() -> CustomEndpointProvider {
+        if let existing = customEndpointProvider {
+            return existing
+        }
+        let provider = CustomEndpointProvider()
+        self.customEndpointProvider = provider
+        DebugLogger.shared.info("ASRService: Created custom endpoint provider", source: "ASRService")
         return provider
     }
 
@@ -444,6 +458,8 @@ final class ASRService: ObservableObject {
         case .qwen3Asr:
             // Qwen support removed; route legacy requests to Parakeet v3.
             return FluidAudioProvider(modelOverride: .parakeetTDT, configureWordBoosting: false)
+        case .customEndpoint:
+            return CustomEndpointProvider()
         default:
             // Whisper models - create provider with specific model override
             return WhisperProvider(modelOverride: model)
@@ -562,6 +578,7 @@ final class ASRService: ObservableObject {
         self.externalCoreMLProvider = nil
         self.whisperProvider = nil
         self.appleSpeechProvider = nil
+        self.customEndpointProvider = nil
         self._appleSpeechAnalyzerProvider = nil
 
         // CRITICAL FIX: Check if the NEW model's files exist on disk
