@@ -1,5 +1,19 @@
 # Contributing to FluidVoice
 
+## Maintaining the Chronicle fork
+
+The Chronicle speech-endpoint changes live on `feat/custom-openai-endpoint`.
+To merge the latest public FluidVoice changes into that branch, start with a
+clean working tree and run:
+
+```bash
+./scripts/sync-upstream.sh
+```
+
+The script fetches `https://github.com/altic-dev/FluidVoice.git` as `upstream`,
+merges `upstream/main`, and stops before pushing or rebuilding the installed
+application. Resolve and test any conflicts before pushing the fork branch.
+
 Thanks for taking the time to improve FluidVoice. This repository keeps GitHub Issues focused on actionable work, and uses Discussions for questions, ideas, and early design conversations.
 
 ## Start with Discussions
